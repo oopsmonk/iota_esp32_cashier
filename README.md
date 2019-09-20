@@ -1,5 +1,4 @@
-# Hello World Example
+# IOTA Cashier
 
-Starts a FreeRTOS task to print "Hello World"
+Monitoring balance of an address on the tangle. 
 
-See the README.md file in the upper level 'examples' directory for more information about examples.
