@@ -1,4 +1,4 @@
-menu "IOTA CClient"
+menu "IOTA Cashier"
 
     menu "WiFi"
         config WIFI_SSID
@@ -45,13 +45,19 @@ menu "IOTA CClient"
             bool "Use HTTPS"
             default y
 
-        config IOTA_RECEIVER
-            string "The receiver address"
-            default ""
-            help
-                Monitor the balance on this address.
-
     endmenu
+
+    config IOTA_RECEIVER
+        string "Receiver address"
+        default ""
+        help
+            Monitor the balance on this address.
+
+    config INTERVAL
+        int "Monitor interval(s)"
+        default 30
+        help
+            Interval in seconds.
 
     config CCLIENT_DEBUG
         bool "Enable DEBUG in CClient"

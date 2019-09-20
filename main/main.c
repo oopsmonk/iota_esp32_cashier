@@ -39,8 +39,6 @@ static EventGroupHandle_t wifi_event_group;
    to the AP with an IP? */
 const static int CONNECTED_BIT = BIT0;
 
-// log the sleep time.
-static RTC_DATA_ATTR struct timeval sleep_enter_time;
 // log previous balance
 static uint64_t latest_balance = 0;
 
@@ -115,7 +113,9 @@ static uint64_t get_balance() {
   }
 
 done:
-  printf("get_balance: %s\n", error_2_string(ret_code));
+  if(ret_code != RC_OK){
+    printf("get_balance: %s\n", error_2_string(ret_code));
+  }
   get_balances_req_free(&balance_req);
   get_balances_res_free(&balance_res);
   return balance;
@@ -178,11 +178,14 @@ static void check_receiver_address() {
 static void monitor_receiver_address() {
   uint64_t curr_balance = get_balance();
   if (curr_balance > latest_balance) {
-      printf("received %" PRIu64 "i\n", curr_balance - latest_balance);
+    printf("\033[0;34m+ %" PRIu64 "i\033[0m\n", curr_balance - latest_balance);
+    // TODO
   } else if (curr_balance == latest_balance) {
-    printf("balance is not changed: %" PRIu64 "i\n", latest_balance);
+    printf("= %" PRIu64 "i\n", latest_balance);
+    // TODO
   } else {
-    printf("- %" PRIu64 "i\n", latest_balance - curr_balance);
+    printf("\033[1;31m- %" PRIu64 "i\033[0m\n", latest_balance - curr_balance);
+    // TODO
   }
   latest_balance = curr_balance;
 }
@@ -236,10 +239,10 @@ void app_main() {
   // init wifi
   wifi_conn_init();
 
-  ESP_LOGI(TAG, "Connecting to WiFi network...");
+  ESP_LOGI(TAG, "Connecting to %s...", CONFIG_WIFI_SSID);
   /* Wait for the callback to set the CONNECTED_BIT in the event group. */
   xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
-  ESP_LOGI(TAG, "Connected to AP");
+  ESP_LOGI(TAG, "WiFi Connected");
   ESP_LOGI(TAG, "IRI Node: %s, port: %d, HTTPS:%s\n", CONFIG_IRI_NODE_URI, CONFIG_IRI_NODE_PORT,
            CONFIG_ENABLE_HTTPS ? "True" : "False");
 
@@ -249,10 +252,11 @@ void app_main() {
   // init cclient
   init_iota_client();
   latest_balance = get_balance();
+  ESP_LOGI(TAG, "Receive: %s", CONFIG_IOTA_RECEIVER);
+  ESP_LOGI(TAG, "Initial balance: %" PRIu64 "i, interval %d", latest_balance, CONFIG_INTERVAL);
 
   while (1) {
-    vTaskDelay(30 * 1000 / portTICK_PERIOD_MS);
+    vTaskDelay(CONFIG_INTERVAL * 1000 / portTICK_PERIOD_MS);
     monitor_receiver_address();
   }
-
 }
