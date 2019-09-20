@@ -45,24 +45,12 @@ menu "IOTA CClient"
             bool "Use HTTPS"
             default y
 
-        config IOTA_SEED
-            string "Seed"
+        config IOTA_RECEIVER
+            string "The receiver address"
             default ""
             help
-                IRI port for the example to use.
+                Monitor the balance on this address.
 
-        config IOTA_DEPTH
-            int "Depth for tips selection"
-            default 3
-            help
-                Client application set to 3, if the depth is too large(above 15, it depends on the IRI's configuration)
-                an error will be ocurred.
-
-        config IOTA_MWM
-            int "Minimum Weight Magnitude for PoW"
-            default 14
-            help
-                14 for mannet, 6 for devnet or testnet.
     endmenu
 
     config CCLIENT_DEBUG
