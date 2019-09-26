@@ -10,6 +10,8 @@ set(COMPONENT_PRIV_REQUIRES
    keccak
    iota_cclient
    mbedtls
+   qrcodegen
+   ST7735
 )
 
 set(COMPONENT_REQUIRES console spi_flash nvs_flash)

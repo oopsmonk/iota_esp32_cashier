@@ -25,6 +25,11 @@ IOTA cashier who monitoring the balance of an address.
 
 #include "cclient/api/core/core_api.h"
 
+#ifdef CONFIG_FTF_LCD
+#include "ST7735.h"
+#include "qrcodegen.h"
+#endif
+
 // The BOOT butten on board, push on LOW.
 #define WAKE_UP_GPIO GPIO_NUM_0
 // ESP32-DevKitC V4 onboard LED
@@ -40,7 +45,7 @@ static EventGroupHandle_t wifi_event_group;
 const static int CONNECTED_BIT = BIT0;
 
 // log previous balance
-static uint64_t latest_balance = 0;
+uint64_t latest_balance = 0;
 
 //================CClient Setup=============
 static iota_client_service_t g_cclient;
@@ -113,7 +118,7 @@ static uint64_t get_balance() {
   }
 
 done:
-  if(ret_code != RC_OK){
+  if (ret_code != RC_OK) {
     printf("get_balance: %s\n", error_2_string(ret_code));
   }
   get_balances_req_free(&balance_req);
@@ -122,6 +127,68 @@ done:
 }
 
 //===========End of CClient=================
+
+//===========LCD and QR code================
+
+#ifdef CONFIG_FTF_LCD
+// text buffer for display
+static char lcd_text[32] = {};
+#endif
+
+static void lcd_print(int16_t x, int16_t y, const char *text, int16_t color) {
+#ifdef CONFIG_FTF_LCD
+  st7735_draw_string(x, y, text, color, RGB565_WHITE, 1);
+#endif
+}
+
+static void show_balace(uint64_t balance) {
+#ifdef CONFIG_FTF_LCD
+  // show balance on LCD
+  if(balance > 1000000000000){
+    sprintf(lcd_text, "%3.2fTi", (float)balance/1000000000000);
+  }else if(balance > 1000000000){
+    sprintf(lcd_text, "%3.2fGi", (float)balance/1000000000);
+  }else if(balance > 1000000){
+    sprintf(lcd_text, "%3.2fMi", (float)balance/1000000);
+  }else if(balance > 1000){
+    sprintf(lcd_text, "%3.2fKi", (float)balance/1000);
+  }else{
+    sprintf(lcd_text, "%di", (int)balance);
+  }
+  st7735_draw_string(2, 1, lcd_text, RGB565_GREEN, RGB565_WHITE, 2);
+#endif
+}
+
+static void draw_qr_code(const char *text) {
+#ifdef CONFIG_FTF_LCD
+  int element_size = 2;
+  int qr_version = 10;
+  // qr code (x,y) offset
+  int offset_x = 8, offset_y = 30;
+  size_t qr_buff_len = qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version);
+  uint8_t qr0[qr_buff_len];
+  uint8_t tempBuffer[qr_buff_len];
+  bool ok = qrcodegen_encodeText(text, tempBuffer, qr0, qrcodegen_Ecc_MEDIUM, qr_version, qr_version,
+                                 qrcodegen_Mask_AUTO, true);
+
+  if (ok) {
+    int size = qrcodegen_getSize(qr0);
+    for (int y = 0; y < size; y++) {
+      for (int x = 0; x < size; x++) {
+        if (qrcodegen_getModule(qr0, x, y)) {
+          st7735_rect(x * element_size + offset_x, y * element_size + offset_y, element_size, element_size,
+                      RGB565_BLACK);
+        } else {
+          st7735_rect(x * element_size + offset_x, y * element_size + offset_y, element_size, element_size,
+                      RGB565_WHITE);
+        }
+      }
+    }
+  }
+#endif
+}
+
+//===========End of LCD and QR code=========
 
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event) {
   switch (event->event_id) {
@@ -163,9 +230,14 @@ static void wifi_conn_init(void) {
 }
 
 static void check_receiver_address() {
-  if (strlen(CONFIG_IOTA_RECEIVER) != HASH_LENGTH_TRYTE) {
+  size_t address_len = strlen(CONFIG_IOTA_RECEIVER);
+  if (!(address_len == HASH_LENGTH_TRYTE || address_len == HASH_LENGTH_TRYTE + 9)) {
+#ifdef CONFIG_FTF_LCD
+    lcd_print(1, 4, "Invalid address", RGB565_RED);
+    lcd_print(1, 6, "Restart in 5s", RGB565_RED);
+#endif
     ESP_LOGE(TAG, "please set a valid address hash(CONFIG_IOTA_RECEIVER) in sdkconfig!");
-    for (int i = 30; i >= 0; i--) {
+    for (int i = 5; i >= 0; i--) {
       ESP_LOGI(TAG, "Restarting in %d seconds...", i);
       vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
@@ -180,12 +252,14 @@ static void monitor_receiver_address() {
   if (curr_balance > latest_balance) {
     printf("\033[0;34m+ %" PRIu64 "i\033[0m\n", curr_balance - latest_balance);
     // TODO
+    show_balace(curr_balance);
   } else if (curr_balance == latest_balance) {
     printf("= %" PRIu64 "i\n", latest_balance);
     // TODO
   } else {
     printf("\033[1;31m- %" PRIu64 "i\033[0m\n", latest_balance - curr_balance);
     // TODO
+    show_balace(curr_balance);
   }
   latest_balance = curr_balance;
 }
@@ -218,6 +292,20 @@ static void update_time() {
     localtime_r(&now, &timeinfo);
   }
 
+  if(timeinfo.tm_year < (2018 - 1900)){
+    ESP_LOGE(TAG, "Sync SNPT failed...");
+ #ifdef CONFIG_FTF_LCD
+    lcd_print(1, 10, "Get time failed.", RGB565_RED);
+#endif
+    for (int i = 5; i >= 0; i--) {
+      ESP_LOGI(TAG, "Restarting in %d seconds...", i);
+      vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+    ESP_LOGI(TAG, "Restarting now.\n");
+    fflush(stdout);
+    esp_restart();
+  }
+
   // set timezone
   char strftime_buf[32];
   setenv("TZ", CONFIG_SNTP_TZ, 1);
@@ -233,19 +321,35 @@ void app_main() {
   gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
   gpio_set_level(BLINK_GPIO, 1);
 
+#ifdef CONFIG_FTF_LCD
+  // init lcd
+  st7735_init();
+  st7735_fill_screen(RGB565_WHITE);
+
+  lcd_print(1, 2, "Checking address...", RGB565_BLACK);
+#endif
   check_receiver_address();
 
   initialize_nvs();
+
+#ifdef CONFIG_FTF_LCD
+  lcd_print(1, 4, "Init WiFi...", RGB565_BLACK);
+  #endif
   // init wifi
   wifi_conn_init();
 
-  ESP_LOGI(TAG, "Connecting to %s...", CONFIG_WIFI_SSID);
   /* Wait for the callback to set the CONNECTED_BIT in the event group. */
   xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
   ESP_LOGI(TAG, "WiFi Connected");
   ESP_LOGI(TAG, "IRI Node: %s, port: %d, HTTPS:%s\n", CONFIG_IRI_NODE_URI, CONFIG_IRI_NODE_PORT,
            CONFIG_ENABLE_HTTPS ? "True" : "False");
 
+#ifdef CONFIG_FTF_LCD
+  sprintf(lcd_text, "SSID: %s", CONFIG_WIFI_SSID);
+  st7735_draw_string(1, 6, lcd_text, RGB565_BLACK, RGB565_WHITE, 1);
+
+  lcd_print(1, 8, "Sync local time...", RGB565_BLACK);
+#endif
   // get time from sntp
   update_time();
 
@@ -254,6 +358,15 @@ void app_main() {
   latest_balance = get_balance();
   ESP_LOGI(TAG, "Receive: %s", CONFIG_IOTA_RECEIVER);
   ESP_LOGI(TAG, "Initial balance: %" PRIu64 "i, interval %d", latest_balance, CONFIG_INTERVAL);
+
+#ifdef CONFIG_FTF_LCD
+  lcd_print(1, 10, "Ready to go...", RGB565_GREEN);
+  vTaskDelay(2 * 1000 / portTICK_PERIOD_MS);
+  st7735_fill_screen(RGB565_WHITE);
+
+  draw_qr_code(CONFIG_IOTA_RECEIVER);
+  show_balace(latest_balance);
+#endif
 
   while (1) {
     vTaskDelay(CONFIG_INTERVAL * 1000 / portTICK_PERIOD_MS);

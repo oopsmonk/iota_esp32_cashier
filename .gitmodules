@@ -14,3 +14,9 @@
 [submodule "components/iota_cclient/entangled"]
 	path = components/iota_cclient/entangled
 	url = https://github.com/iotaledger/entangled.git
+[submodule "components/qrcodegen/qrcodegen"]
+	path = components/qrcodegen/qrcodegen
+	url = https://github.com/nayuki/QR-Code-generator.git
+[submodule "components/ST7735"]
+	path = components/ST7735
+	url = https://github.com/oopsmonk/esp32_lib_st7735.git

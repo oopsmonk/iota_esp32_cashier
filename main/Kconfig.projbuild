@@ -1,3 +1,4 @@
+
 menu "IOTA Cashier"
 
     menu "WiFi"
@@ -52,6 +53,16 @@ menu "IOTA Cashier"
         default ""
         help
             Monitor the balance on this address.
+
+    config FTF_LCD
+        bool "Support LCD"
+        default n
+        help
+            Support QR Code on LCD.
+
+    if FTF_LCD
+    source "../components/ST7735/Kconfig"
+    endif
 
     config INTERVAL
         int "Monitor interval(s)"
