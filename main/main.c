@@ -137,25 +137,25 @@ static char lcd_text[32] = {};
 
 static void lcd_print(int16_t x, int16_t y, const char *text, int16_t color) {
 #ifdef CONFIG_FTF_LCD
-  st7735_draw_string(x, y, text, color, RGB565_WHITE, 1);
+  st7735_draw_string(x, y, text, color, COLOR_WHITE, 1);
 #endif
 }
 
 static void show_balace(uint64_t balance) {
 #ifdef CONFIG_FTF_LCD
   // show balance on LCD
-  if(balance > 1000000000000){
-    sprintf(lcd_text, "%3.2fTi", (float)balance/1000000000000);
-  }else if(balance > 1000000000){
-    sprintf(lcd_text, "%3.2fGi", (float)balance/1000000000);
-  }else if(balance > 1000000){
-    sprintf(lcd_text, "%3.2fMi", (float)balance/1000000);
-  }else if(balance > 1000){
-    sprintf(lcd_text, "%3.2fKi", (float)balance/1000);
-  }else{
+  if (balance > 1000000000000) {
+    sprintf(lcd_text, "%3.2fTi", (float)balance / 1000000000000);
+  } else if (balance > 1000000000) {
+    sprintf(lcd_text, "%3.2fGi", (float)balance / 1000000000);
+  } else if (balance > 1000000) {
+    sprintf(lcd_text, "%3.2fMi", (float)balance / 1000000);
+  } else if (balance > 1000) {
+    sprintf(lcd_text, "%3.2fKi", (float)balance / 1000);
+  } else {
     sprintf(lcd_text, "%di", (int)balance);
   }
-  st7735_draw_string(2, 1, lcd_text, RGB565_GREEN, RGB565_WHITE, 2);
+  st7735_draw_string(2, 1, lcd_text, COLOR_BLUE, COLOR_WHITE, 2);
 #endif
 }
 
@@ -177,10 +177,10 @@ static void draw_qr_code(const char *text) {
       for (int x = 0; x < size; x++) {
         if (qrcodegen_getModule(qr0, x, y)) {
           st7735_rect(x * element_size + offset_x, y * element_size + offset_y, element_size, element_size,
-                      RGB565_BLACK);
+                      COLOR_BLACK);
         } else {
           st7735_rect(x * element_size + offset_x, y * element_size + offset_y, element_size, element_size,
-                      RGB565_WHITE);
+                      COLOR_WHITE);
         }
       }
     }
@@ -233,8 +233,8 @@ static void check_receiver_address() {
   size_t address_len = strlen(CONFIG_IOTA_RECEIVER);
   if (!(address_len == HASH_LENGTH_TRYTE || address_len == HASH_LENGTH_TRYTE + 9)) {
 #ifdef CONFIG_FTF_LCD
-    lcd_print(1, 4, "Invalid address", RGB565_RED);
-    lcd_print(1, 6, "Restart in 5s", RGB565_RED);
+    lcd_print(1, 4, "Invalid address", COLOR_RED);
+    lcd_print(1, 6, "Restart in 5s", COLOR_RED);
 #endif
     ESP_LOGE(TAG, "please set a valid address hash(CONFIG_IOTA_RECEIVER) in sdkconfig!");
     for (int i = 5; i >= 0; i--) {
@@ -292,10 +292,10 @@ static void update_time() {
     localtime_r(&now, &timeinfo);
   }
 
-  if(timeinfo.tm_year < (2018 - 1900)){
+  if (timeinfo.tm_year < (2018 - 1900)) {
     ESP_LOGE(TAG, "Sync SNPT failed...");
- #ifdef CONFIG_FTF_LCD
-    lcd_print(1, 10, "Get time failed.", RGB565_RED);
+#ifdef CONFIG_FTF_LCD
+    lcd_print(1, 10, "Get time failed.", COLOR_RED);
 #endif
     for (int i = 5; i >= 0; i--) {
       ESP_LOGI(TAG, "Restarting in %d seconds...", i);
@@ -324,17 +324,17 @@ void app_main() {
 #ifdef CONFIG_FTF_LCD
   // init lcd
   st7735_init();
-  st7735_fill_screen(RGB565_WHITE);
+  st7735_fill_screen(COLOR_WHITE);
 
-  lcd_print(1, 2, "Checking address...", RGB565_BLACK);
+  lcd_print(1, 2, "Checking address...", COLOR_BLACK);
 #endif
   check_receiver_address();
 
   initialize_nvs();
 
 #ifdef CONFIG_FTF_LCD
-  lcd_print(1, 4, "Init WiFi...", RGB565_BLACK);
-  #endif
+  lcd_print(1, 4, "Init WiFi...", COLOR_BLACK);
+#endif
   // init wifi
   wifi_conn_init();
 
@@ -346,9 +346,9 @@ void app_main() {
 
 #ifdef CONFIG_FTF_LCD
   sprintf(lcd_text, "SSID: %s", CONFIG_WIFI_SSID);
-  st7735_draw_string(1, 6, lcd_text, RGB565_BLACK, RGB565_WHITE, 1);
+  st7735_draw_string(1, 6, lcd_text, COLOR_BLACK, COLOR_WHITE, 1);
 
-  lcd_print(1, 8, "Sync local time...", RGB565_BLACK);
+  lcd_print(1, 8, "Sync time...", COLOR_BLACK);
 #endif
   // get time from sntp
   update_time();
@@ -360,9 +360,9 @@ void app_main() {
   ESP_LOGI(TAG, "Initial balance: %" PRIu64 "i, interval %d", latest_balance, CONFIG_INTERVAL);
 
 #ifdef CONFIG_FTF_LCD
-  lcd_print(1, 10, "Ready to go...", RGB565_GREEN);
+  lcd_print(1, 10, "Ready to go...", COLOR_BLUE);
   vTaskDelay(2 * 1000 / portTICK_PERIOD_MS);
-  st7735_fill_screen(RGB565_WHITE);
+  st7735_fill_screen(COLOR_WHITE);
 
   draw_qr_code(CONFIG_IOTA_RECEIVER);
   show_balace(latest_balance);
