@@ -24,7 +24,6 @@ set(COMMON_TRINARY
     ${COMMON_DIR}/trinary/add.c
     ${COMMON_DIR}/trinary/flex_trit.c
     ${COMMON_DIR}/trinary/ptrit_incr.c
-    ${COMMON_DIR}/trinary/trit_array.c
     ${COMMON_DIR}/trinary/trit_byte.c
     ${COMMON_DIR}/trinary/trit_long.c
     ${COMMON_DIR}/trinary/trit_tryte.c

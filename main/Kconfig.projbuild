@@ -48,11 +48,47 @@ menu "IOTA Cashier"
 
     endmenu
 
+   config INTERVAL
+        int "Monitor interval(s)"
+        default 30
+        help
+            Monitoring interval in seconds.
+
+    config ADDRESS_REFRESH
+        bool "Auto refresh address"
+        default n
+        help
+            Refresh address if it's a spent address.
+
+    config IOTA_SEED
+        string "Seed"
+        default ""
+        depends on ADDRESS_REFRESH
+        help
+            IOTA Seed
+
+    config IOTA_SECURITY
+        int "Security Level"
+        default 2
+        range 1 3
+        depends on ADDRESS_REFRESH
+        help
+            the security level(1, 2, or 3) for addresses generation
+
+    config IOTA_ADDRESS_START_INDEX
+        int "Start Address"
+        default 0
+        depends on ADDRESS_REFRESH
+        help
+            the start index for finding an unspent address.
+
+    if !ADDRESS_REFRESH
     config IOTA_RECEIVER
         string "Receiver address"
         default ""
         help
             Monitor the balance on this address.
+    endif
 
     config FTF_LCD
         bool "Support LCD"
@@ -63,12 +99,6 @@ menu "IOTA Cashier"
     if FTF_LCD
     source "../components/ST7735/Kconfig"
     endif
-
-    config INTERVAL
-        int "Monitor interval(s)"
-        default 30
-        help
-            Interval in seconds.
 
     config CCLIENT_DEBUG
         bool "Enable DEBUG in CClient"
