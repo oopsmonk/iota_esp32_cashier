@@ -1,0 +1,29 @@
+' IOTA Cashier
+@startuml
+title IOTA Cashier
+
+start
+partition Initialization {
+repeat
+-LCD initialization
+-WiFi initialization
+-Checks Seed or Reciver Address
+-Update time via SNTP
+-Gets an unspent address
+-Gets balance
+repeat while ( ) is (Any fails)
+}
+
+partition Monitoring {
+repeat
+  if (Balance increased) then ( )
+    :Refreash LCD;
+  elseif (Balance decreased) then ( )
+    :Gets next unspent address;
+    :Refreash LCD;
+  elseif (Balance remained) then ( )
+    :Nothing;
+  endif
+repeat while (Gets balance) is ( )
+}
+@enduml
