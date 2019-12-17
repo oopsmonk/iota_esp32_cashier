@@ -4,9 +4,17 @@ A payment device powered by IOTA CClient on ESP32.
 
 It generates a QR code from an unspent address for costumers paying IOTA tokens, after the owner withdrawal tokens from this address the device will seek for next unspent address and refresh QR code, it prevents to reuse an address.  
 
-# Flowchart  
+## Flowchart  
 
 ![](https://github.com/oopsmonk/iota_esp32_cashier/raw/master/image/IOTA%20Cashier.png)  
+
+## Demonstration  
+
+The cashier starts to initialize address and connect to WiFi after power on.  
+![](https://github.com/oopsmonk/iota_esp32_cashier/raw/master/image/cashier_init.jpg)  
+
+After initialization, it monitors the balance and displays a QR code for payment.  
+![](https://github.com/oopsmonk/iota_esp32_cashier/raw/master/image/cashier_standby.jpg)  
 
 ## Requirements  
 
