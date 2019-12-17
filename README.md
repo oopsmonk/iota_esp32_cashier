@@ -10,11 +10,11 @@ It generates a QR code from an unspent address for costumers paying IOTA tokens,
 
 ## Demonstration  
 
-The cashier starts to initialize address and connect to WiFi after power on.  
-![](https://github.com/oopsmonk/iota_esp32_cashier/raw/master/image/cashier_init.jpg)  
+**Receiving tokens**  
+[![](http://img.youtube.com/vi/Vp9J2ntikcc/0.jpg)](http://www.youtube.com/watch?v=Vp9J2ntikcc)
 
-After initialization, it monitors the balance and displays a QR code for payment.  
-![](https://github.com/oopsmonk/iota_esp32_cashier/raw/master/image/cashier_standby.jpg)  
+**Updating the QR code after a withdraw**  
+[![](http://img.youtube.com/vi/a_qEPlbzrig/0.jpg)](http://www.youtube.com/watch?v=a_qEPlbzrig)
 
 ## Requirements  
 
