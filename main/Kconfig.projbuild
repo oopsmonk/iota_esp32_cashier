@@ -96,10 +96,6 @@ menu "IOTA Cashier"
         help
             Support QR Code on LCD.
 
-    if FTF_LCD
-    source "../components/ST7735/Kconfig"
-    endif
-
     config CCLIENT_DEBUG
         bool "Enable DEBUG in CClient"
         default n
