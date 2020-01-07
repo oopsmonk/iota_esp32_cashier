@@ -18,29 +18,26 @@ It generates a QR code from an unspent address for costumers paying IOTA tokens,
 
 ## Requirements  
 
-* [ESP32-DevKitC V4](https://docs.espressif.com/projects/esp-idf/en/v3.2.2/get-started/get-started-devkitc.html#esp32-devkitc-v4-getting-started-guide)
-* xtensa-esp32 toolchain
-* ESP-IDF v3.2.2
+* [ESP32-DevKitC V4](https://docs.espressif.com/projects/esp-idf/en/latest/hw-reference/get-started-devkitc.html#functional-description)
 
 ## ESP32 build system setup  
 
 Please follow documentations to setup your toolchain and development framework.
 
 Linux and MacOS:  
-* [xtensa-esp32 toolchain(Linux)](https://docs.espressif.com/projects/esp-idf/en/v3.2.2/get-started-cmake/linux-setup.html) 
-* [xtensa-esp32 toolchain(MacOS)](https://docs.espressif.com/projects/esp-idf/en/v3.2.2/get-started-cmake/macos-setup.html) 
-* [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v3.2.2/get-started-cmake/index.html#get-esp-idf) 
+* [xtensa-esp32 toolchain(Linux)](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started-cmake/linux-setup.html) 
+* [xtensa-esp32 toolchain(MacOS)](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started-cmake/macos-setup.html) 
+* [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started-cmake/index.html#linux-and-macos) 
 
 Windows:
-* [xtensa-esp32 toolchain](https://docs.espressif.com/projects/esp-idf/en/v3.2.2/get-started-cmake/windows-setup.html#standard-setup-of-toolchain-for-windows-cmake) 
-* [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v3.2.2/get-started-cmake/index.html#windows-command-prompt) 
+* [xtensa-esp32 toolchain](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started-cmake/windows-setup.html#standard-setup-of-toolchain-for-windows-cmake) 
+* [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started-cmake/index.html#windows-command-prompt) 
 
-**Notice: We use the ESP-IDF v3.2.2**
+**Notice: We use the ESP-IDF v3.3.1**
 
 ```
-git clone -b v3.2.2 --recursive https://github.com/espressif/esp-idf.git
+git clone -b v3.3.1 --recursive https://github.com/espressif/esp-idf.git
 ```
-
 
 Now, you can test your develop environment via the [hello_world](https://github.com/espressif/esp-idf/tree/release/v3.2/examples/get-started/hello_world) project.  
 
@@ -105,22 +102,30 @@ Windows: use **Git Bash** to run the command above.
 
 ### Step 3: Configuration  
 
-In this step, you need to set up the WiFi, SNTP, IRI node, and a recursive.  
+In this step, you need to set up the WiFi, SNTP, IRI node, and a receiver.  
 
 ```
 idf.py menuconfig
 # WiFi SSID & Password
 [IOTA Cashier] -> [WiFi]
+
 # SNTP Client
 [IOTA Cashier] -> [SNTP]
+
 # Default IRI node
 [IOTA Cashier] -> [IRI Node]
+
 # The time of monitoring
 [IOTA Cashier] -> (30) Monitor interval (s)
+
 # Do you wanna update address automatically?
 [IOTA Cashier] -> [ ] Auto refresh address
+
 # Enable LCD driver?
 [IOTA Cashier] -> [ ] Support LCD 
+
+# LCD driver config
+[Component config] -> ST7735 Configuration
 ```
 
 You can check configures in `sdkconfig` file.  
